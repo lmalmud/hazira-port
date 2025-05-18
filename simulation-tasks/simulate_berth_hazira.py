@@ -28,6 +28,7 @@ month_to_number = {'January' : 1, 'February' : 2, 'March' : 3, 'April': 4,
 
 # Build list of strings of form 'month/day'
 data = []
+data.append(['date', 'MP1', 'MP2', 'MP3', 'MP4', 'CT1', 'CT2'])
 for month in months:
     bound = 31 # Number of days to add for this month
     if month in thirty_days:
@@ -36,22 +37,21 @@ for month in months:
     for i in range(1, bound+1): # For each day, append a string with day/month
         current_row = []
         current_row.append(f'{month_to_number[month]}/{i}')
+        
+        # Determine what the mean for the draw should be, based on whether it is peak/dip
+        mean = .78
+        if month in monsoon_dip: # -14%
+            mean = .78-.14
+        if month in winter_peak: # +9%
+            mean = .78+.09
 
         # If it is not a peak or dip, we use 78% utilization
         # loc is mean, scale is standard deviation
-        occupancy = float(np.random.normal(loc=.78, scale=.05, size=1)[0])
-        
-        if month in monsoon_dip: # -14%
-            occupancy = float(np.random.normal(loc=.78-.14, scale=.05, size=1)[0])
-        if month in winter_peak: # +9%
-            occupancy = float(np.random.normal(loc=.78+.09, scale=.05, size=1)[0])
-
-        current_row.append(occupancy)
+        occupancy = np.random.normal(loc=.78, scale=.05, size=6).tolist()
+        current_row = current_row + occupancy
 
         data.append(current_row)
 
 with open('simulate_berth_hazira.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerows(data)
-
-print(data)
