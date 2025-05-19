@@ -35,6 +35,7 @@ CT1-CT2 harboring different types of cargo.
 
 import csv
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Berth:
     '''
@@ -135,11 +136,18 @@ while arrival_time < 365*24:
             berth_to_dock = berth
     start_time = berth_to_dock.dock(vessel)
 
+    # [arrival_time, berth_id, service_time, delay_flag, start_time, end_time]
     data.append([vessel.arrival_time, berth_to_dock.name, vessel.service_time, vessel.delayed, start_time, start_time + vessel.service_time])
 
-for berth in BERTHS:
-    print(berth)
+for row in data[1:]: # Omit the first row because that is the header
+    y_val = BERTH_NAMES.index(row[1])
+    plt.plot([row[4], row[5]], [y_val, y_val], color='black')
 
 with open('vessel_turnaround_hazira.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerows(data)
+
+plt.title('Processing At Berths Over Year')
+plt.ylabel('berth')
+plt.xlabel('hours')
+plt.show()
