@@ -33,7 +33,13 @@ class ContainerMove:
     '''
 
     def __init__(self, start_time):
-        self.start_time = start_time
+        self.yard_arrival = start_time
+        self.move_start_time = 0
+        self.move_end_time = 0
+        self.resource_name = ''
+
+    def __str__(self):
+        return f'MOVE. yard arrival: {self.yard_arrival}, at {self.resource_name} move start: {self.move_start_time}, move end: {self.move_end_time}'
 
 class YardResource:
     '''
@@ -41,33 +47,41 @@ class YardResource:
     that will perform a 'move' on containers.
     '''
 
-    def __init__(self, type='Quay'):
+    def __init__(self, type='Quay', name=''):
         self.type = type # Either Yard or Quay
+        self.name = name
         self.containers = [] # List of containers that need to be processed
         self.next_idle_time = 0
 
     def process(self, container):
         # If quay, processing time is normal with mean 90s, standard dev 10s
         # Truncate at 20 seconds
-        processing_time = min((20/(60*60)), np.normal(loc=(90/(60*60)), scale=(10/(60*60)), size=1)[0])
+        processing_time = min((20/(60*60)), np.random.normal(loc=(90/(60*60)), scale=(10/(60*60)), size=1)[0])
 
         # If yard, processing time is normal with mean 144s, standard dev 15s
         # Truncate at 30s
         if self.type == 'Yard':
-            processing_time = min((30/(60*60)), np.normal(loc=(144/(60*60)), scale=(15/(60*60)), size=1)[0])
+            processing_time = min((30/(60*60)), np.random.normal(loc=(144/(60*60)), scale=(15/(60*60)), size=1)[0])
         
         # If the next container to be processed is after the next idle time
-        if container.start_time > self.next_idle_time:
-            self.next_idle_time += container.start_time + processing_time
+        if container.yard_arrival > self.next_idle_time:
+            self.next_idle_time += container.yard_arrival + processing_time
+            container.move_start_time = container.yard_arrival
+            
 
         # May process immediately
         else:
+            container.move_start_time = self.next_idle_time
             self.next_idle_time += processing_time
+
+        # Update the properties of the container that track its movement
+        container.move_end_time = container.move_start_time + processing_time
+        container.resource_name = self.name
 
         # Add the container to the list of containers handled
         self.containers.append(container)
 
-
+        
 
 # Read the data from previous vessel arrival simulation
 container_arrival = []
@@ -80,20 +94,35 @@ container_arrival = container_arrival[1:]
 # There are 6 quay cranes and 14 yard cranes
 resources = []
 for i in range(6):
-    resources.append(YardResource('Quay'))
+    resources.append(YardResource('Quay', name=f'Quay{i}'))
 for i in range(14):
-    resources.append(YardResource('Yard'))
+    resources.append(YardResource('Yard', name=f'Yard{i}'))
 
-data = []
+data = [['container_arrival', 'resource_assigned', 'move_start', 'move_end']]
+all_moves = []
 for container in container_arrival:
     # Draw the number of moves from poisson(lambda=2.6) and round the result
     num_moves = round(np.random.poisson(lam=2.6))
 
     # container = [arrival_time, berth_id, service_time, delay_flag, start_time, end_time]
     for i in range(num_moves):
-        current_move = ContainerMove
+        # the start time of the move is the end_time of when it was processed at the berth
+        current_move = ContainerMove(float(container[5]))
 
-    # TODO: add movement simulation
+        # TODO: add movement simulation
+        resource_to_add = resources[0]
+        for resource in resources:
+            if resource.next_idle_time < resource_to_add.next_idle_time:
+                resource_to_add = resource
+
+        # This method will update the properties of the move
+        resource_to_add.process(current_move)
+        all_moves.append(current_move)
+
+# Write all relevant simulation information to data list
+for move in all_moves:
+    # [container_arrival, resource_assigned, move_start, move_end]
+    data.append([move.yard_arrival, move.resource_name, move.move_start_time, move.move_end_time])
 
 with open('container_moves_hazira.csv', 'w') as file:
     writer = csv.writer(file)
