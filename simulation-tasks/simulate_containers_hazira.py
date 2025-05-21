@@ -34,9 +34,11 @@ class ContainerMove:
 
     def __init__(self, start_time):
         self.yard_arrival = start_time
-        self.move_start_time = 0
+        self.move_start_time = 0 # Time that the move is able to begin
+        # Note that move_start_time may not be equal to yard_arrival because
+        # the container may not be able to be processed immediately
         self.move_end_time = 0
-        self.resource_name = ''
+        self.resource_name = '' # The resource that the movement will occur at e.g. Yard2
 
     def __str__(self):
         return f'MOVE. yard arrival: {self.yard_arrival}, at {self.resource_name} move start: {self.move_start_time}, move end: {self.move_end_time}'
@@ -49,11 +51,18 @@ class YardResource:
 
     def __init__(self, type='Quay', name=''):
         self.type = type # Either Yard or Quay
-        self.name = name
+        self.name = name # Label for this particular crane later used in the output files
         self.containers = [] # List of containers that need to be processed
         self.next_idle_time = 0
 
     def process(self, container):
+        '''
+        Simulates the processing of a container at the given yard resource.
+        The duration of the processing time is dependent upon whether the particular
+        crane is Yard/RTG or a Quay. The container is either processed immediately,
+        if the crane is currently idle, or processed immediately upon the next time
+        the crane is free.
+        '''
         # If quay, processing time is normal with mean 90s, standard dev 10s
         # Truncate at 20 seconds
         processing_time = min((20/(60*60)), np.random.normal(loc=(90/(60*60)), scale=(10/(60*60)), size=1)[0])
@@ -68,7 +77,6 @@ class YardResource:
             self.next_idle_time += container.yard_arrival + processing_time
             container.move_start_time = container.yard_arrival
             
-
         # May process immediately
         else:
             container.move_start_time = self.next_idle_time
