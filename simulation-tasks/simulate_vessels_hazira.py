@@ -104,10 +104,13 @@ class Vessel:
     def __str__(self):
         return f'VESSEL. arrival time: {self.arrival_time}, service time: {self.service_time}, delayed: {self.delayed}'
         
-BERTH_NAMES = ['MP1', 'MP2', 'MP3', 'MP4', 'CT1', 'CT2']
-ARRIVALS_PER_YEAR = 1200
+# Define appropriate simulation parameters
+BERTH_NAMES = ['MP1', 'MP2', 'MP3', 'MP4', 'CT1', 'CT2'] # 4 multipurpose berths and two container (from research)
+ARRIVALS_PER_YEAR = 1200 # Given simulation parameter
 ARRIVALS_PER_DAY = ARRIVALS_PER_YEAR / 365
 ARRIVALS_PER_HOUR = ARRIVALS_PER_YEAR / (365*24)
+
+# Create a list of berths, each with one of the given names
 BERTHS = []
 for berth_name in BERTH_NAMES:
     BERTHS.append(Berth(berth_name))
@@ -139,14 +142,17 @@ while arrival_time < 365*24:
     # [arrival_time, berth_id, service_time, delay_flag, start_time, end_time]
     data.append([vessel.arrival_time, berth_to_dock.name, vessel.service_time, vessel.delayed, start_time, start_time + vessel.service_time])
 
+# Plot a graph representing the occupancies of each vessel
 for row in data[1:]: # Omit the first row because that is the header
     y_val = BERTH_NAMES.index(row[1])
     plt.plot([row[4], row[5]], [y_val, y_val], color='black')
 
+# Write simulation results to csv file
 with open('vessel_turnaround_hazira.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerows(data)
 
+# Label the output graph
 plt.title('Processing At Berths Over Year')
 plt.ylabel('berth')
 plt.xlabel('hours')

@@ -89,8 +89,6 @@ class YardResource:
         # Add the container to the list of containers handled
         self.containers.append(container)
 
-        
-
 # Read the data from previous vessel arrival simulation
 container_arrival = []
 with open("vessel_turnaround_hazira.csv", 'r') as file:
@@ -106,7 +104,10 @@ for i in range(6):
 for i in range(14):
     resources.append(YardResource('Yard', name=f'Yard{i}'))
 
+# data will be what is written to the csv file ultimately
 data = [['container_arrival', 'resource_assigned', 'move_start', 'move_end']]
+
+# A list of every move that occurs at the port (data in the output csv will be extracted from these objects)
 all_moves = []
 for container in container_arrival:
     # Draw the number of moves from poisson(lambda=2.6) and round the result

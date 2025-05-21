@@ -26,9 +26,9 @@ lambda_scale = mean_interarrival / mp.gamma(1 + 1/k)
 
 class Crane:
     def __init__(self, name, downtime):
-        self.name = name
-        self.downtime = downtime
-        self.failures = []
+        self.name = name # Name of this crane
+        self.downtime = downtime # The hours of failure for each failure
+        self.failures = [] # A list of intervals where the crane is not functional
     
     def fail(self, start_time):
         '''
@@ -42,6 +42,11 @@ class Crane:
         self.failures.append([start_time, start_time + self.downtime])
 
     def __str__(self):
+        '''
+        Returns a string representing all relevant data for this crane.
+        The name of the crane and its hours of downtime per failure
+        followed by a list of every the start and end time of each failure in hours
+        '''
         s = f'{self.name} - {self.downtime} hr downtime\n'
         for event in self.failures:
             s += f'\t - {event[0]} - {event[1]}\n'
@@ -66,9 +71,10 @@ for crane in cranes:
         
         crane.fail(simulation_time)
 
-# [resource_name, downtime_start, downtime_end]
+# Each element is of the form [resource_name, downtime_start, downtime_end]
 data = []
 
+# For each of the cranes, add each failure
 for crane in cranes:
     for failure in crane.failures:
         data.append([crane.name, failure[0], failure[1]])
@@ -83,6 +89,7 @@ for duration in cranes[0].failures:
 print(accum/(365))
 '''
 
+# Write output to csv file
 with open('crane_uptime_hazira.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerows(data)
