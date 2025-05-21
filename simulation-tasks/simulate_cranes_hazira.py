@@ -42,8 +42,10 @@ class Crane:
         self.failures.append([start_time, start_time + self.downtime])
 
     def __str__(self):
-        # FIXME
-        pass
+        s = f'{self.name} - {self.downtime} hr downtime\n'
+        for event in self.failures:
+            s += f'\t - {event[0]} - {event[1]}\n'
+        return s
 
 cranes = []
 # There are 6 quay cranes and 14 yard (RTG) cranes
@@ -66,6 +68,20 @@ for crane in cranes:
 
 # [resource_name, downtime_start, downtime_end]
 data = []
+
+for crane in cranes:
+    for failure in crane.failures:
+        data.append([crane.name, failure[0], failure[1]])
+
+'''
+This is a test to see if the total amount of repair time is as expected.
+This is a quay crane, so it should fail approximately twice a day for 1.2 hours each time.
+So, we expect the accumulated time of failure to be 2.4 hours a day.
+accum = 0
+for duration in cranes[0].failures:
+    accum += duration[1] - duration[0]
+print(accum/(365))
+'''
 
 with open('crane_uptime_hazira.csv', 'w') as file:
     writer = csv.writer(file)
