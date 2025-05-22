@@ -52,6 +52,6 @@ for month in months:
 
         data.append(current_row)
 
-with open('simulate_berth_hazira.csv', 'w') as file:
+with open('berth_occupancy_hazira.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerows(data)
