@@ -12,6 +12,10 @@ with mean 11 and standard deviation 2.5.
 We would like to track the number of trucks in the queue at each hour.
 
 Note that all time values are measured in hours
+
+Sanity check:
+We expect a total number of procesisng hours to be: 160*(11/60)
+So, we expect (160*(11/60)-24)/(11/60) = 29 remaining trucks at the end of the simulation
 '''
 
 import csv
@@ -27,6 +31,13 @@ class Truck:
         self.service_time = np.random.normal(loc=(11/60), scale=(2.5/60), size=1)[0]
         self.completion_time = np.inf # Updated once the truck has been processed
 
+    def __str__(self):
+        '''
+        Returns a string representing the truck,
+        stating the arrival and service times.
+        '''
+        return f'TRUCK. arrival_time: {self.arrival_time}, service_time: {self.service_time}'
+
 class Gate:
     '''
     A class to represent the gate, which may have a queue
@@ -41,6 +52,7 @@ class Gate:
         Enqueues a truck at the gate by appending
         it to the internal queue
         '''
+        print(truck)
         self.queue.append(truck)
 
     def update(self, time, duration):
@@ -54,14 +66,29 @@ class Gate:
         Returns
         length of queue
         '''
-        while duration > 0:
-            if len(self.queue) > 0: # If there are still trucks that must be processed
-                self.queue[0].service_time -= duration
-                # If it didn't take the entire duration to process this truck
-                if self.queue[0].service_time <= 0:
-                    # The remaining duration is all time that wasn't used by truck at start of queue
-                    duration = abs(self.queue[0].service_time)
-                    self.queue.pop(0) # Since there was enough time to complete the task, remove from queue
+        remaining_time = duration
+
+        # If there are still trucks that must be processed and more processing time
+        while remaining_time > 0 and self.queue:
+
+            head = self.queue[0] # Next truck to be processed
+
+            # If we can process this truck entirely, with time to spare
+            if head.service_time <= remaining_time:
+
+                # The time it took to finish was the time at start (time)
+                # plus the amount of processing time that has already occred
+                head.completion_time = time + (duration - remaining_time)
+
+                # Update reamining time, note not all time was used
+                remaining_time -= head.service_time
+
+                self.queue.pop(0)
+
+            # All of the processing time had to be used on the first truck
+            else:
+                head.service_time -= remaining_time
+                remaining_time = 0
 
 '''
 We would like a new row in the spreadsheet when any event occurs. This could be:
@@ -76,8 +103,8 @@ The simulation will be processed in quarter hours.
 '''
 HOUR_TIMESTEP = 4 # The number of intervals per hour
 
-# [time (in hours), queue_length]
-data = []
+# [time (in hours), arrivals, queue_length]
+data = [['time', 'num_arrivals', 'queue_length']]
 
 time = 0 # The current simulation time (in hours)
 gate = Gate() # A gate object to process trucks
@@ -96,5 +123,10 @@ while time < 24:
         gate.add(Truck(time))
 
     time += 1/HOUR_TIMESTEP
-    gate.update(time, HOUR_TIMESTEP)
-    data.append([time, len(gate.queue)])
+    gate.update(time, 1/HOUR_TIMESTEP)
+    data.append([time, num_trucks, len(gate.queue)])
+
+# Write output to csv file
+with open('gate_entries_hazira.csv', 'w') as file:
+    writer = csv.writer(file)
+    writer.writerows(data)
