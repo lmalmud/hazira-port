@@ -7,7 +7,7 @@ from enforce_schema import enforce_schema
 import pandas as pd
 
 SCHEMA = {
-    'columns' : ['arrival_time', 'berth', 'service_time', 'delay_flag', 'start_time', 'end_time'],
+    'columns' : ['arrival_time', 'berth', 'service_time', 'delay_flag', 'start_time', 'end_time', 'turnaround'],
     'dtypes' : {'arrival_time' : 'datetime64[ns]',
                 'berth' : 'string',
                 'service_time' : 'timedelta64[ns]',

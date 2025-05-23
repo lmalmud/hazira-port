@@ -26,4 +26,3 @@ maintenance = pd.read_pickle('maintenance_events_hazira.pkl')
 
 # ingest_vessel_turnaround_hazira.py
 turnaround = pd.read_pickle('vessel_turnaround_hazira.pkl')
-print(turnaround)
