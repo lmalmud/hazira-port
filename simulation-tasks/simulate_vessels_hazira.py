@@ -137,20 +137,22 @@ while arrival_time < SIM_END:
     # Generate the time of the next arrival
     time += pd.Timedelta(hours=np.random.exponential(scale=1/ARRIVALS_PER_HOUR, size=1)[0]).round('s')
     arrival_time = time
-    vessel = Vessel(arrival_time)
 
-    # Add the vessel to the berth with the earliest finish time
-    # By default, the vessel will dock at MP1
-    berth_to_dock = BERTHS[0]
-    for berth in BERTHS:
-        if berth.next_idle_time < berth_to_dock.next_idle_time:
-            berth_to_dock = berth
-    start_time = berth_to_dock.dock(vessel)
+    if arrival_time < SIM_END: # New time may be over the year-limit
+        vessel = Vessel(arrival_time)
 
-    end_time = start_time + vessel.service_time
+        # Add the vessel to the berth with the earliest finish time
+        # By default, the vessel will dock at MP1
+        berth_to_dock = BERTHS[0]
+        for berth in BERTHS:
+            if berth.next_idle_time < berth_to_dock.next_idle_time:
+                berth_to_dock = berth
+        start_time = berth_to_dock.dock(vessel)
 
-    # [arrival_time, berth_id, service_time, delay_flag, start_time, end_time]
-    data.append([vessel.arrival_time, berth_to_dock.name, vessel.service_time, vessel.delayed, start_time, end_time])
+        end_time = start_time + vessel.service_time
+
+        # [arrival_time, berth_id, service_time, delay_flag, start_time, end_time]
+        data.append([vessel.arrival_time, berth_to_dock.name, vessel.service_time, vessel.delayed, start_time, end_time])
 
 # Plot a graph representing the occupancies of each vessel
 for row in data[1:]: # Omit the first row because that is the header

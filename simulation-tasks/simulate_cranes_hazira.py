@@ -18,11 +18,15 @@ so \lambda = \frac{12}{\gamma(1 + \frac{1}{1.7})}
 import csv
 import numpy as np
 import mpmath as mp # for gamma function
+import pandas as pd # for time
 
 # Defining the parameters and scale for the Weibull draws
 k = 1.7
 mean_interarrival = 12
 lambda_scale = mean_interarrival / mp.gamma(1 + 1/k)
+
+SIM_START = pd.Timestamp('2025-01-01 00:00')
+SIM_END = SIM_START + pd.Timedelta(days=365)
 
 class Crane:
     def __init__(self, name, downtime):
@@ -61,8 +65,8 @@ for i in range(14):
 
 for crane in cranes:
     # Simulate failures on this crane until one year has been simulated
-    simulation_time = 0 # Measured in hours
-    while simulation_time < 365*24:
+    simulation_time = SIM_START # Measured in hours
+    while simulation_time < SIM_END:
         # Randomly generate the time between failures
         next_failure = np.random.weibull(1.7, size=1)[0] * lambda_scale
 

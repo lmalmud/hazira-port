@@ -26,19 +26,25 @@ So each piece of equipment is handled 2.6 times on average during its stay
 
 import csv
 import numpy as np
+import pandas as pd
+
+SIM_START = pd.to_datetime('2025-01-01 00:00')
+SIM_END = SIM_START + pd.Timedelta(days=365)
 
 class ContainerMove:
     '''
     A class that will represent one movement of one container.
     '''
 
-    def __init__(self, start_time):
+    def __init__(self, start_time, call_id, teu_handled):
         self.yard_arrival = start_time
-        self.move_start_time = 0 # Time that the move is able to begin
+        self.move_start_time = SIM_START # Time that the move is able to begin
         # Note that move_start_time may not be equal to yard_arrival because
         # the container may not be able to be processed immediately
-        self.move_end_time = 0
+        self.move_end_time = SIM_END
         self.resource_name = '' # The resource that the movement will occur at e.g. Yard2
+        self.call_id = call_id # Each vessel that arrives will be assigneda unique ID
+        self.teu_handled = teu_handled # The number of teu that vessel has
 
     def __str__(self):
         return f'MOVE. yard arrival: {self.yard_arrival}, at {self.resource_name} move start: {self.move_start_time}, move end: {self.move_end_time}'
@@ -53,7 +59,7 @@ class YardResource:
         self.type = type # Either Yard or Quay
         self.name = name # Label for this particular crane later used in the output files
         self.containers = [] # List of containers that need to be processed
-        self.next_idle_time = 0
+        self.next_idle_time = SIM_START
 
     def process(self, container):
         '''
@@ -65,16 +71,18 @@ class YardResource:
         '''
         # If quay, processing time is normal with mean 90s, standard dev 10s
         # Truncate at 20 seconds
-        processing_time = max((20/(60*60)), np.random.normal(loc=(90/(60*60)), scale=(10/(60*60)), size=1)[0])
+        processing_time_hr = max((20/(60*60)), np.random.normal(loc=(90/(60*60)), scale=(10/(60*60)), size=1)[0])
 
         # If yard, processing time is normal with mean 144s, standard dev 15s
         # Truncate at 30s
         if self.type == 'Yard':
-            processing_time = max((30/(60*60)), np.random.normal(loc=(144/(60*60)), scale=(15/(60*60)), size=1)[0])
+            processing_time_hr = max((30/(60*60)), np.random.normal(loc=(144/(60*60)), scale=(15/(60*60)), size=1)[0])
+
+        processing_time = pd.Timedelta(hours = processing_time_hr).round('s')
         
         # If the next container to be processed is after the next idle time
         if container.yard_arrival > self.next_idle_time:
-            self.next_idle_time += container.yard_arrival + processing_time
+            self.next_idle_time = container.yard_arrival + processing_time
             container.move_start_time = container.yard_arrival
             
         # May process immediately
@@ -105,7 +113,9 @@ for i in range(14):
     resources.append(YardResource('Yard', name=f'Yard{i}'))
 
 # data will be what is written to the csv file ultimately
-data = [['container_arrival', 'resource_assigned', 'move_start', 'move_end']]
+data = [['container_arrival', 'call_id', 'teu_handled', 'resource_assigned', 'move_start', 'move_end']]
+
+id_count = 0
 
 # A list of every move that occurs at the port (data in the output csv will be extracted from these objects)
 all_moves = []
@@ -113,10 +123,18 @@ for container in container_arrival:
     # Draw the number of moves from poisson(lambda=2.6) and round the result
     num_moves = round(np.random.poisson(lam=2.6))
 
+    id_count += 1
+    # Generate TEU handled as a maximum of 1500, normally distributed with mean 1400
+    teu = max(0,
+          min(1500,
+              int(round(np.random.normal(loc=1400, scale=150)))))
+
     # container = [arrival_time, berth_id, service_time, delay_flag, start_time, end_time]
     for i in range(num_moves):
         # the start time of the move is the end_time of when it was processed at the berth
-        current_move = ContainerMove(float(container[5]))
+        current_move = ContainerMove(start_time=pd.to_datetime(container[5]),
+                                     call_id = id_count,
+                                     teu_handled = teu)
 
         # TODO: add movement simulation
         resource_to_add = resources[0]
@@ -130,8 +148,8 @@ for container in container_arrival:
 
 # Write all relevant simulation information to data list
 for move in all_moves:
-    # [container_arrival, resource_assigned, move_start, move_end]
-    data.append([move.yard_arrival, move.resource_name, move.move_start_time, move.move_end_time])
+    # [container_arrival, call_id, teu_handled, resource_assigned, move_start, move_end]
+    data.append([move.yard_arrival, move.call_id, move.teu_handled, move.resource_name, move.move_start_time, move.move_end_time])
 
 with open('container_moves_hazira.csv', 'w') as file:
     writer = csv.writer(file)
