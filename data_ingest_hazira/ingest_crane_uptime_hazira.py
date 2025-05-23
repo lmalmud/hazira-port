@@ -7,10 +7,11 @@ from enforce_schema import enforce_schema
 import pandas as pd
 
 SCHEMA = {
-    'columns' : ['resource_name', 'downtime_start', 'downtime_end'],
+    'columns' : ['resource_name', 'downtime_start', 'downtime_end', 'duration'],
     'dtypes' : {'resource_name' : 'string',
                 'downtime_start' : 'datetime64[ns]',
-                'downtime_end' : 'datetime64[ns]'}
+                'downtime_end' : 'datetime64[ns]',
+                'duration' : 'timedelta64[ns]'}
 }
 
 file = '../simulation_tasks/crane_uptime_hazira.csv'

@@ -165,13 +165,23 @@ SIMULATIONS = [Simulation(name='S2: Berth Occupancy Simulation',
                                         'move_duration' : equal_zero},
                            continuous_cols=['teu_handled', 'move_duration']),
                 Simulation(name='S5: Crane & RTG Uptime & Downtime',
-                           df=crane),
+                           df=crane,
+                           invalid_cols={'duration' : equal_zero},
+                           continuous_cols=['duration']),
                 Simulation(name='S6: Gate-Entry Traffic',
-                           df=gate),
+                           df=gate,
+                           invalid_cols = {'arrivals' : neg,
+                                          'num_processed' : neg,
+                                          'queue_length' : neg},
+                            continuous_cols = ['arrivals', 'num_processed', 'queue_length']),
                 Simulation(name='S7: Energy Consumption Profile',
-                           df=energy),
+                           df=energy,
+                           invalid_cols = {'energy_kWh' : equal_zero},
+                           continuous_cols = ['energy_kWh']),
                 Simulation(name='S8: Maintenance Event Simulation',
-                           df=maintenance)]
+                           df=maintenance,
+                           invalid_cols={'maintenance_duration' : equal_zero},
+                           continuous_cols = ['maintenance_duration'])]
 
 def new_page(title):
     '''
