@@ -59,16 +59,17 @@ class Crane:
 cranes = []
 # There are 6 quay cranes and 14 yard (RTG) cranes
 for i in range(6):
-    cranes.append(Crane(name=f'Quay{i}', downtime=1.2))
+    cranes.append(Crane(name=f'Quay{i}', downtime=pd.Timedelta(hours=1.2)))
 for i in range(14):
-    cranes.append(Crane(name=f'Yard{i}', downtime=1))
+    cranes.append(Crane(name=f'Yard{i}', downtime=pd.Timedelta(hours=1)))
 
 for crane in cranes:
     # Simulate failures on this crane until one year has been simulated
     simulation_time = SIM_START # Measured in hours
     while simulation_time < SIM_END:
         # Randomly generate the time between failures
-        next_failure = np.random.weibull(1.7, size=1)[0] * lambda_scale
+        next_failure_hrs = float(np.random.weibull(1.7, size=1)[0] * lambda_scale)
+        next_failure = pd.Timedelta(hours=next_failure_hrs).round('s')
 
         # Increment simulation time to the next failure
         simulation_time += next_failure
@@ -76,7 +77,7 @@ for crane in cranes:
         crane.fail(simulation_time)
 
 # Each element is of the form [resource_name, downtime_start, downtime_end]
-data = []
+data = [['resource_name', 'downtime_start', 'downtime_end']]
 
 # For each of the cranes, add each failure
 for crane in cranes:

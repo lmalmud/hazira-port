@@ -73,19 +73,21 @@ df_calls = (
 
 # Find the total number of TEU moved
 monthly_teu_moves = df_calls['teu_handled'].resample('ME').sum()
-print(monthly_teu_moves)
 
 # METRIC 4: crane downtime hours
-'''
-# if df_crane has columns ['timestamp','duration_h']:
-crane_downtime = df_crane.resample('M', on='timestamp').duration_h.sum()
-'''
+df_crane = pd.read_csv('crane_uptime_hazira.csv')
+# Convert start and end to be datetime objects
+df_crane['downtime_start'] = pd.to_datetime(df_crane['downtime_start'])
+df_crane['downtime_end'] = pd.to_datetime(df_crane['downtime_end'])
+# Calculate the duration of each downtime
+df_crane['duration'] = df_crane['downtime_end'] - df_crane['downtime_start']
+# Calculate total monthly downtime
+crane_downtime = df_crane.resample('ME', on='downtime_start').duration.sum()
 
 # METRIC 5: trucks processed
-'''
-df_trucks['depart_time'] = …  # if you’ve logged it
+df_trucks = pd.read_csv('gate_entries_hazira.csv')
+df_trucks['time'] = pd.to_datetime(df_trucks['time'])  # if you’ve logged it
 trucks_proc = df_trucks.resample('M', on='depart_time').truck_id.count()
-'''
 
 # METRIC 6: kWh consumption
 '''
@@ -105,4 +107,3 @@ df_monthly = pd.DataFrame({
 })
 df_monthly.to_excel('hazira_monthly_metrics.xlsx')
 '''
-print(df_vessel)
