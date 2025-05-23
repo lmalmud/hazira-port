@@ -32,8 +32,8 @@ df_occ = pd.DataFrame(
 # For each row in the csv, representing an arrived vessel
 for vessel in vessel_turnaround:
     # Obtain the start and end hours by rounding down the start and end time of the vessel's processing
-    start_hour = pd.to_datetime(vessel[4]).floor('H')
-    end_hour= pd.to_datetime(vessel[5]).floor('H')
+    start_hour = pd.to_datetime(vessel[4]).floor('h')
+    end_hour= pd.to_datetime(vessel[5]).floor('h')
 
     # Get list of all hours that overlap with start and end range
     hours = pd.date_range(start_hour, end_hour, freq='h').intersection(df_occ.index)
@@ -86,24 +86,26 @@ crane_downtime = df_crane.resample('ME', on='downtime_start').duration.sum()
 
 # METRIC 5: trucks processed
 df_trucks = pd.read_csv('gate_entries_hazira.csv')
-df_trucks['time'] = pd.to_datetime(df_trucks['time'])  # if you’ve logged it
-trucks_proc = df_trucks.resample('M', on='depart_time').truck_id.count()
+df_trucks['time'] = pd.to_datetime(df_trucks['time']) # Convert timestamps to pandas objects
+
+# Calculate the sum of trucks processed within each month
+trucks_proc = df_trucks.resample('ME', on='time').num_processed.sum()
 
 # METRIC 6: kWh consumption
-'''
-kwh_monthly = df_energy.resample('M', on='datetime').adjusted_kwh.sum()
-'''
+df_energy = pd.read_csv('energy_consumption_hazira.csv')
+df_energy['time'] = pd.to_datetime(df_energy['time'])
+
+# Find total amount of energy per month
+kwh_monthly = df_energy.resample('ME', on='time').energy_kWh.sum()
 
 # EXPORT to .xlsx
-'''
 df_monthly = pd.DataFrame({
   'berth_idle_hrs': idle_hours,
   'avg_vessel_turnaround_hrs': avg_turn,
-  'monthly_TEU': monthly_teu,
-  'monthly_yard_moves': monthly_moves,
+  'monthly_TEU': monthly_teu_moves,
   'crane_downtime_hrs': crane_downtime,
   'trucks_processed': trucks_proc,
   'kwh_consumption': kwh_monthly
 })
+df_monthly = df_monthly.iloc[:-1] # Remove last row which has some data from the next year
 df_monthly.to_excel('hazira_monthly_metrics.xlsx')
-'''

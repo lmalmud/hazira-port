@@ -21,7 +21,7 @@ import csv
 import numpy as np
 import pandas as pd # Used for ease in handling dates
 
-data = [['hours', 'energy (kWh)']]
+data = [['time', 'energy_kWh']]
 # Generate dates from Jan 1 to Dec 31, hourly data
 for timestamp in pd.date_range('2025-01-01 00:00', '2025-12-31 23:00', freq='h'):
     h, m = timestamp.hour, timestamp.month # Record current hour and month
@@ -32,13 +32,10 @@ for timestamp in pd.date_range('2025-01-01 00:00', '2025-12-31 23:00', freq='h')
     # Summer is June, July, August (6, 7, 8) so +17%
     # Winter is December, January, February (12, 1, 2) so -17%
     season_factor = 1.17 if m in [6, 7, 8] else (.83 if m in [12, 1, 2] else 1)
-
-    # For row label, want the number of hours into the simulation
-    total_hours = (timestamp - pd.to_datetime('2025-01-01 00:00')).total_seconds() / 3600
     
     # Calculate adjusted energy used, accounting for the admin factor of 1.06
-    energy = 6500 * 1.06 * peak_hour_factor * season_factor
-    data.append([total_hours, energy])
+    energy = round(6500 * 1.06 * peak_hour_factor * season_factor, 2)
+    data.append([timestamp, energy])
 
 # Write output to csv file
 with open('energy_consumption_hazira.csv', 'w') as file:
