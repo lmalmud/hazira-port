@@ -23,4 +23,7 @@ gate = pd.read_pickle('gate_entries_hazira.pkl')
 
 # ingest_maintenance_events_hazira.py
 maintenance = pd.read_pickle('maintenance_events_hazira.pkl')
-print(maintenance)
+
+# ingest_vessel_turnaround_hazira.py
+turnaround = pd.read_pickle('vessel_turnaround_hazira.pkl')
+print(turnaround)
