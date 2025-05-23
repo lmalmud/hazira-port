@@ -1,9 +1,9 @@
 '''
 ingest_berth_occupancy_hazira.py
-
+Enforces schema for berth_occupancy_hazira.csv
 '''
 
-import glob
+from enforce_schema import enforce_schema
 import pandas as pd
 
 SCHEMA = {
@@ -17,16 +17,5 @@ SCHEMA = {
                 'CT2' : 'float64'}
 }
 
-
 file = '../simulation_tasks/berth_occupancy_hazira.csv'
-df = pd.read_csv(file)
-
-# Any columns that are supposed to be in the dataframe that are not
-missing = set(SCHEMA['columns']) - set(df.columns)
-if missing:
-    raise RuntimeError(f'{file} missing columns {missing}')
-
-# Set the columns to be their given types
-df = df[SCHEMA['columns']].astype(SCHEMA['dtypes'])
-
-pd.to_pickle('./data_ingest_hazira', 'berth_occupancy_hazira.pkl')
+enforce_schema(file, 'berth_occupancy_hazira', SCHEMA)
