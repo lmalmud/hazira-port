@@ -9,6 +9,7 @@ and winter peak (+9 % Dec–Feb).
 
 import csv # Used for writing to the output file
 import numpy as np # Used for simulating draws from the Normal distribtuion
+import pandas as pd # For dates
 
 # List of names of all months
 months = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -51,6 +52,12 @@ for month in months:
         current_row = current_row + occupancy
 
         data.append(current_row)
+
+''''
+TODO: rewrite this using pandas dates to be cleaner
+for timestamp in pd.date_range('2025-01-01 00:00', '2025-12-31 23:00', freq='D'):
+    pass
+'''
 
 with open('berth_occupancy_hazira.csv', 'w') as file:
     writer = csv.writer(file)
