@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import math
 
+# METRIC 1: berth idle hours
 # [arrival_time,berth,service_time,delay_flag,start_time,end_time]
 vessel_turnaround = []
 with open('vessel_turnaround_hazira.csv', 'r') as file:
@@ -32,9 +33,14 @@ for vessel in vessel_turnaround:
         BERTHS[vessel[1]].append(i) # Access the berth by its key, which is its ID
 
 # An array that will store the raw occupancy data
-occ_data = []
+# The first column will be hourly timestamps
+occ_data = [[timestamp for timestamp in pd.date_range('2025-01-01 00:00', '2025-12-31 23:00', freq='h')]]
+
+# Iterate over each of the berths
 for berth in BERTHS.keys():
     current = []
+
+    # For every hour in the year
     for i in range(365*24):
         # Add 1 if the berth is occupied at this hour and zero otherwise
         current.append(int(i in BERTHS[berth]))
@@ -44,4 +50,16 @@ for berth in BERTHS.keys():
 numpy_occ = np.array(occ_data).T
 
 # Create a dataframe that will store the information
-df_occ = pd.DataFrame(columns=BERTHS.keys(), data=numpy_occ)
+df_occ = pd.DataFrame(columns=['time']+list(BERTHS.keys()), data=numpy_occ)
+
+# Set the index to be the time column, and cast as an actual datetime opject
+df_occ['time'] = pd.to_datetime(df_occ['time'])
+df_occ = df_occ.set_index('time')
+
+# Only get the part of the dataframe that is the berths
+df_berths = df_occ[list(BERTHS.keys())].astype(int)
+
+# idle_hours = (1 - df_berths).sum(axis=1).resample('ME').sum() # If we only care about total idle hours
+idle_hours = (1 - df_berths).resample('ME').sum() # If we want to separate by berth
+
+# METRIC 2: average vessel turnaround

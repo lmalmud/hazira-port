@@ -65,12 +65,12 @@ class YardResource:
         '''
         # If quay, processing time is normal with mean 90s, standard dev 10s
         # Truncate at 20 seconds
-        processing_time = min((20/(60*60)), np.random.normal(loc=(90/(60*60)), scale=(10/(60*60)), size=1)[0])
+        processing_time = max((20/(60*60)), np.random.normal(loc=(90/(60*60)), scale=(10/(60*60)), size=1)[0])
 
         # If yard, processing time is normal with mean 144s, standard dev 15s
         # Truncate at 30s
         if self.type == 'Yard':
-            processing_time = min((30/(60*60)), np.random.normal(loc=(144/(60*60)), scale=(15/(60*60)), size=1)[0])
+            processing_time = max((30/(60*60)), np.random.normal(loc=(144/(60*60)), scale=(15/(60*60)), size=1)[0])
         
         # If the next container to be processed is after the next idle time
         if container.yard_arrival > self.next_idle_time:

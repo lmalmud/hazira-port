@@ -35,6 +35,7 @@ CT1-CT2 harboring different types of cargo.
 
 import csv
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 class Berth:
@@ -50,7 +51,7 @@ class Berth:
         self.name = name
 
         # Will store the next time that a vessel could dock here without having to wait
-        self.next_idle_time = 0
+        self.next_idle_time = SIM_START
 
     def dock(self, vessel):
         '''
@@ -90,16 +91,19 @@ class Vessel:
         self.arrival_time = arrival_time
 
         # Service times are distributed normally with mean of 23 and standard deviation 4.5
-        self.service_time = np.random.normal(loc=23, scale=4.5, size = 1)[0]
-        if self.service_time < 0:
-            self.service_time = 1 # If a negative service time is generated, round to 1 hour
+        # Truncate at one hour
+        service_hrs = max(1, np.random.normal(loc=23, scale=4.5, size = 1)[0])
+
+        # The service time will be a timedelta object
+        self.service_time = pd.Timedelta(hours=service_hrs).round('s')
 
         # Generate an 11% chance of whether or not this vessel is delayed
         self.delayed = np.random.binomial(n=1, p=.11, size=1)[0]
 
         # If this vessel was delayed, increase the service time
         if self.delayed:
-            self.service_time += np.random.uniform(.5, 3, size=1)[0]
+            extra_hrs = np.random.uniform(.5, 3, size=1)[0]
+            self.service_time += pd.Timedelta(hours=extra_hrs).round('s')
 
     def __str__(self):
         return f'VESSEL. arrival time: {self.arrival_time}, service time: {self.service_time}, delayed: {self.delayed}'
@@ -110,24 +114,28 @@ ARRIVALS_PER_YEAR = 1200 # Given simulation parameter
 ARRIVALS_PER_DAY = ARRIVALS_PER_YEAR / 365
 ARRIVALS_PER_HOUR = ARRIVALS_PER_YEAR / (365*24)
 
+# The time that the simulation will begin at 
+SIM_START = pd.Timestamp('2025-01-01 00:00')
+SIM_END = SIM_START + pd.Timedelta(days=365)
+
 # Create a list of berths, each with one of the given names
 BERTHS = []
 for berth_name in BERTH_NAMES:
     BERTHS.append(Berth(berth_name))
 
 # Count the number of hours that have run in the simulation
-time = 0
+time = SIM_START
 
 # These arrivals times represent the time between consecutive arrivals of vessels
-arrival_time = time + np.random.exponential(scale=1/ARRIVALS_PER_HOUR, size=1)[0]
+arrival_time = time + pd.Timedelta(hours=np.random.exponential(scale=1/ARRIVALS_PER_HOUR, size=1)[0]).round('s')
 
 data = [['arrival_time', 'berth', 'service_time', 'delay_flag', 'start_time', 'end_time']]
 
 # Run while there still have not been 365 days simulated
-while arrival_time < 365*24:
+while arrival_time < SIM_END:
     
     # Generate the time of the next arrival
-    time += np.random.exponential(scale=1/ARRIVALS_PER_HOUR, size=1)[0]
+    time += pd.Timedelta(hours=np.random.exponential(scale=1/ARRIVALS_PER_HOUR, size=1)[0]).round('s')
     arrival_time = time
     vessel = Vessel(arrival_time)
 
@@ -139,8 +147,10 @@ while arrival_time < 365*24:
             berth_to_dock = berth
     start_time = berth_to_dock.dock(vessel)
 
+    end_time = start_time + vessel.service_time
+
     # [arrival_time, berth_id, service_time, delay_flag, start_time, end_time]
-    data.append([vessel.arrival_time, berth_to_dock.name, vessel.service_time, vessel.delayed, start_time, start_time + vessel.service_time])
+    data.append([vessel.arrival_time, berth_to_dock.name, vessel.service_time, vessel.delayed, start_time, end_time])
 
 # Plot a graph representing the occupancies of each vessel
 for row in data[1:]: # Omit the first row because that is the header
