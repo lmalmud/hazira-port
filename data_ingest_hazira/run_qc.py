@@ -10,6 +10,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
+TRUNCATE_ROWS = 4 # The maximum number of rows to display in any table
+
 def percent_missing(sim, fig):
     '''
     Creates a bargraph representing the percent of invalid zeros
@@ -31,7 +33,11 @@ def invalid_col(sim, fig):
     For each column to be checked, count the number of elements
     in violation and display some representative values.
     '''
+    num_detections = len(sim.invalid_cols.keys()) # The number of checks that will be performed
+    count = 1 # Tracks the current row that we will write into
     for col in sim.invalid_cols:
+        ax = fig.add_subplot(num_detections, 1, count)
+        ax.axis('off')
 
         # Need to only work with numerical values
         if sim.df[col].dtype == 'timedelta64[ns]':
@@ -40,7 +46,22 @@ def invalid_col(sim, fig):
         # sim.invalid_cols is a dictionary that associates column titles with functions
         # that return true if an entry in that column is invalid
         invalid_rows = sim.df[sim.invalid_cols[col](sim.df[col])]
-        print(invalid_rows)
+
+        if invalid_rows.empty:
+            ax.text(.5, .5, f'No invalid entries in {col}', ha='center', va='center', fontsize=12)
+        else:
+            cell_text = invalid_rows.values.tolist() # 2D array of values
+            col_labels = invalid_rows.columns.tolist() # 1D array of column names
+            ax.text(.5, .9, f'{len(cell_text)} outlier(s) detected', ha='center', va='center', fontsize=12)
+            
+            # Truncate displayed outliers if there are more than five
+            if len(cell_text) > TRUNCATE_ROWS:
+                cell_text = cell_text[:TRUNCATE_ROWS]
+
+            # Display a table
+            ax.table(cellText=cell_text, colLabels=col_labels, loc='center')
+
+        count += 1
 
 def outlier_detection(sim, fig, col):
     '''
@@ -52,6 +73,7 @@ def outlier_detection(sim, fig, col):
     col: column of sim.df to detect outliers in
     '''
     
+    # Calculate the mean and standard deviation of observed values
     mean = sim.df[col].mean()
     std = sim.df[col].std()
 
@@ -78,8 +100,8 @@ def outlier_detection(sim, fig, col):
         cell_text = outlier_rows.values.tolist() # 2D array of values
 
         # Truncate displayed outliers if there are more than five
-        if len(cell_text) > 5:
-            cell_text = cell_text[:5]
+        if len(cell_text) > TRUNCATE_ROWS:
+            cell_text = cell_text[:TRUNCATE_ROWS]
         
         col_labels = outlier_rows.columns.tolist() # 1D array of column names
 
@@ -142,10 +164,14 @@ SIMULATIONS = [Simulation(name='S2: Berth Occupancy Simulation',
                            invalid_cols={'teu_handled' : equal_zero,
                                         'move_duration' : equal_zero},
                            continuous_cols=['teu_handled', 'move_duration']),
-                Simulation(name='S5: Crane & RTG Uptime & Downtime'),
-                Simulation(name='S6: Gate-Entry Traffic'),
-                Simulation(name='S7: Energy Consumption Profile'),
-                Simulation(name='S8: Maintenance Event Simulation')]
+                Simulation(name='S5: Crane & RTG Uptime & Downtime',
+                           df=crane),
+                Simulation(name='S6: Gate-Entry Traffic',
+                           df=gate),
+                Simulation(name='S7: Energy Consumption Profile',
+                           df=energy),
+                Simulation(name='S8: Maintenance Event Simulation',
+                           df=maintenance)]
 
 def new_page(title):
     '''
@@ -171,6 +197,11 @@ with PdfPages('Data_Quality_Hazira_Report.pdf') as pdf:
         percent_missing(sim, fig)
         pdf.savefig(fig)
         plt.close(fig) # Clears the plot of this figure
+
+        fig = new_page(sim.name)
+        invalid_col(sim, fig)
+        pdf.savefig(fig)
+        plt.close(fig)
 
         # Check for outliers in each column that we expect outliers
         for col in sim.continuous_cols:
