@@ -219,3 +219,7 @@ with PdfPages('Data_Quality_Hazira_Report.pdf') as pdf:
             outlier_detection(sim, fig, col)
             pdf.savefig(fig)
             plt.close(fig)
+
+'''
+Additional sanity checks that could be added:
+'''
