@@ -82,7 +82,8 @@ df_crane['downtime_end'] = pd.to_datetime(df_crane['downtime_end'])
 # Calculate the duration of each downtime
 df_crane['duration'] = df_crane['downtime_end'] - df_crane['downtime_start']
 # Calculate total monthly downtime
-crane_downtime = df_crane.resample('ME', on='downtime_start').duration.sum()
+crane_downtime_quay = df_crane[df_crane['resource_name'].str.startswith('Quay')].resample('ME', on='downtime_start').duration.sum()
+crane_downtime_yard = df_crane[df_crane['resource_name'].str.startswith('Yard')].resample('ME', on='downtime_start').duration.sum()
 
 # METRIC 5: trucks processed
 df_trucks = pd.read_csv('gate_entries_hazira.csv')
@@ -103,7 +104,8 @@ df_monthly = pd.DataFrame({
   'berth_idle_hrs': idle_hours,
   'avg_vessel_turnaround_hrs': avg_turn,
   'monthly_TEU': monthly_teu_moves,
-  'crane_downtime_hrs': crane_downtime,
+  'quay_crane_downtime_hrs': crane_downtime_quay,
+  'yard_crane_downtime_hrs' : crane_downtime_yard,
   'trucks_processed': trucks_proc,
   'kwh_consumption': kwh_monthly
 })
