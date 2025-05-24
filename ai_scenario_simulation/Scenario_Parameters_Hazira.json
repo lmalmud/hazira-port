@@ -1,0 +1,32 @@
+{
+    "scenarios": [
+      {
+        "name": "conservative",
+        "description": "Moderate initial improvements",
+        "multipliers": {
+          "vessel_service_time": 0.95,
+          "crane_downtime": 0.96,
+          "gate_speed": 1.03
+        }
+      },
+      {
+        "name": "moderate",
+        "description": "Mid‑range improvement targets",
+        "multipliers": {
+          "vessel_service_time": 0.90,
+          "crane_downtime": 0.92,
+          "gate_speed": 1.06
+        }
+      },
+      {
+        "name": "aggressive",
+        "description": "Stretch goals for maximum throughput",
+        "multipliers": {
+          "vessel_service_time": 0.80,
+          "crane_downtime": 0.85,
+          "gate_speed": 1.10
+        }
+      }
+    ]
+  }
+  
