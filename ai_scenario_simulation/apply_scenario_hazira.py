@@ -77,9 +77,15 @@ for scenario in scenarios['scenarios']:
                      x.queue_length, 
                      scenario['multipliers']['gate_speed'])[1], axis=1)
     
-    sim_name = scenario['name']
-    with pd.ExcelWriter(f'hazira_{sim_name}_scenario.xlsx') as excel_writer:
+    sim_name = scenario['name'] # moderate, conservative, etc.
+
+    # Note that we need to use "with" otherwise the sheet will not be closed properly
+    # We use a writer so that we may rewrite each dataframe as its own sheet
+    with pd.ExcelWriter(f'Adjusted_Metrics_SC_{sim_name}.xlsx') as excel_writer:
         vessel_turnaround.to_excel(excel_writer, sheet_name='vessel_turnaround_haizra')
         crane.to_excel(excel_writer, sheet_name='crane_uptime_hazira')
         gate.to_excel(excel_writer, sheet_name='gate_entries_hazira')
 
+'''
+An area for expansion would be to add improvement metrics in the other categories
+'''
