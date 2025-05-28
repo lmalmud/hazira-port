@@ -33,4 +33,20 @@ def annualize_metrics(df: pd.DataFrame) -> pd.Series:
     numeric = df.select_dtypes("number")
     return numeric.sum()
 
+def load_metrics_xlsx(path: Path) -> pd.Series:
+    '''
+    Read the data that we care about for computing prices
+    into one dataframe.
+    '''
+
+    # Compute the total number of service hours for this simulation
+    vessels = pd.read_excel(path, sheet_name="vessel_turnaround")
+    vessels["service_time"] = vessels["service_time"].dt.total_seconds() / 3600
+
+    cranes = pd.read_excel(path, sheet_name="crane_uptime_hazira")
+    # FIXME: going to have to calculate costs separately for quay and yard
+
+    gate = pd.read_excel(path, sheet="gate_entries_hazira")
+    gate["num_processed"]
+
 print(load_unit_rates(CONFIG["unit_rates"]))
