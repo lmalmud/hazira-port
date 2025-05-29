@@ -102,11 +102,11 @@ kwh_monthly = df_energy.resample('ME', on='time').energy_kWh.sum()
 # EXPORT to .xlsx
 df_monthly = pd.DataFrame({
   'berth_idle_hrs': idle_hours,
-  'avg_vessel_turnaround_hrs': avg_turn,
+  'vessel_service_hrs': avg_turn,
   'monthly_TEU': monthly_teu_moves,
-  'quay_crane_downtime_hrs': crane_downtime_quay,
-  'yard_crane_downtime_hrs' : crane_downtime_yard,
-  'trucks_processed': trucks_proc,
+  'quay_crane': crane_downtime_quay,
+  'yard_crane' : crane_downtime_yard,
+  'truck_entry': trucks_proc,
   'kwh_consumption': kwh_monthly
 })
 
