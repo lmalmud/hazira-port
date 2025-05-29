@@ -10,10 +10,15 @@ and winter peak (+9 % Dec–Feb).
 import csv # Used for writing to the output file
 import numpy as np # Used for simulating draws from the Normal distribtuion
 import pandas as pd # For dates
+import matplotlib.pyplot as plt # For heatmap
+
+SHOW_FIG = False
 
 # Data will eventually be written to .csv
 data = []
 data.append(['time', 'MP1', 'MP2', 'MP3', 'MP4', 'CT1', 'CT2'])
+
+heatmap_values = []
 
 for timestamp in pd.date_range('2025-01-01 00:00', '2025-12-31 23:00', freq='D'):
     month = timestamp.month
@@ -25,9 +30,19 @@ for timestamp in pd.date_range('2025-01-01 00:00', '2025-12-31 23:00', freq='D')
 
     occupancy = np.random.normal(loc=.78, scale=.05, size=6).tolist()
     occupancy = [round(x, 2) for x in occupancy]
-    data.append([timestamp.isoformat()] + occupancy)
 
+    heatmap_values.append(occupancy)
+    data.append([timestamp.isoformat()] + occupancy)
 
 with open('berth_occupancy_hazira.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerows(data)
+
+if SHOW_FIG:
+    plt.figure(figsize=(12,4))
+    plt.title('Berth Occupancy Over Year')
+    plt.xlabel("Day (of 365)")
+    plt.ylabel("Berth (MP1-MP4, CT1-2)")
+    plt.imshow(np.transpose(heatmap_values), cmap="viridis", aspect="auto")
+    plt.colorbar() # Show color keys
+    plt.show()

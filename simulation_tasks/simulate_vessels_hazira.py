@@ -38,6 +38,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+SHOW_FIG = False
+
 class Berth:
     '''
     A class to represent a berth in order to maintain all
@@ -164,8 +166,9 @@ with open('vessel_turnaround_hazira.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerows(data)
 
-# Label the output graph
-plt.title('Processing At Berths Over Year')
-plt.ylabel('berth')
-plt.xlabel('hours')
-plt.show()
+if SHOW_FIG:
+    # Label the output graph
+    plt.title('Processing At Berths Over Year')
+    plt.ylabel('berth')
+    plt.xlabel('hours')
+    plt.show()

@@ -43,12 +43,12 @@ NUM_MP = 4
 NUM_CT = 2
 NUM_CONVEY = 1
 NUM_LIGHT = 1
-QUAY = [f'QUAY{i}' for i in range(1, NUM_QUAY+1)]
-YARD = [f'YARD{i}' for i in range(1, NUM_YARD+1)]
+QUAY = [f'Quay{i}' for i in range(1, NUM_QUAY+1)]
+YARD = [f'Yard{i}' for i in range(1, NUM_YARD+1)]
 MP = [f'MP{i}' for i in range(1, NUM_MP+1)]
 CT = [f'CT{i}' for i in range(1, NUM_CT+1)]
-CONVEY = [f'CONVEY{i}' for i in range(1, NUM_CONVEY+1)]
-LIGHT = [f'LIGHT{i}' for i in range(1, NUM_LIGHT)]
+CONVEY = [f'Convey{i}' for i in range(1, NUM_CONVEY+1)]
+LIGHT = [f'Light{i}' for i in range(1, NUM_LIGHT)]
 
 # Separate the resources into those with weekly planned maintenace
 # and monthly corrective maintenance

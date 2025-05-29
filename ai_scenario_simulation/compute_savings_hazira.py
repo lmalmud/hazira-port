@@ -19,12 +19,6 @@ CONFIG = {
     "scenario_glob" : Path("Adjusted_Metrics_SC_*.xlsx") # Will match any pattern of adjusted metrics
 }
 
-COLORS = {
-    "conservative" : "#baffbc",
-    "moderate" : "#bae0ff",
-    "agressive" : "#ffbaba",
-}
-
 def load_unit_rates(path: Path) -> pd.Series:
     '''
     Returns a dataframe, indexed by resource, with appropriate unit rates.
@@ -131,7 +125,6 @@ for xlsx_path in CONFIG["scenario_glob"].parent.glob(CONFIG["scenario_glob"].nam
         "scenario_total_cost" : scenario_costs.sum(),
         "savings_delta"       : delta_costs.sum(),
         "savings_percent"     : delta_costs.sum() / baseline_costs.sum(),
-        "note"                : "excludes " + ", ".join(baseline_metrics[~baseline_metrics.isin(costed_metrics.index)].index)
     }])
 
     # Get simulation name

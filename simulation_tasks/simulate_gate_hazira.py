@@ -124,7 +124,7 @@ gate = Gate() # A gate object to process trucks
 deps = 0 # The number of departed trucks since the last tick
 arrivals = 0 # The number of arrivals since the last tick
 
-# Run the simulation for 24 hours
+# Run the simulation for one year
 while time < SIM_END:
     # Draw the number of trucks from a poisson distribution
     num_trucks = np.random.poisson(lam = 160/(24*HOUR_TIMESTEP), size=1)[0]
